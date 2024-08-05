@@ -1,0 +1,21 @@
+{
+  "name": "stratus-cli",
+  "description": "CLI for Stratus, a port forwarding service.",
+  "version": "0.0.1",
+  "scripts": {
+    "start": "node src/main.js",
+    "dev": "nodemon src/main.js"
+  },
+  "author": "Jakub Gustafik",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kubgus/stratus-cli"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.7.5"
+  }
+}
