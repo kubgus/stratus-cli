@@ -3,6 +3,7 @@
   "description": "CLI for Stratus, a port forwarding service.",
   "version": "0.0.1",
   "type": "module",
+  "bin": "src/main.js",
   "scripts": {
     "start": "node src/main.js",
     "dev": "nodemon src/main.js"
