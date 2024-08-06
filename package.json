@@ -2,6 +2,7 @@
   "name": "stratus-cli",
   "description": "CLI for Stratus, a port forwarding service.",
   "version": "0.0.1",
+  "type": "module",
   "scripts": {
     "start": "node src/main.js",
     "dev": "nodemon src/main.js"
@@ -16,6 +17,8 @@
     "nodemon": "^3.1.4"
   },
   "dependencies": {
+    "axios": "^1.7.3",
+    "readline-sync": "^1.4.10",
     "socket.io-client": "^4.7.5"
   }
 }
