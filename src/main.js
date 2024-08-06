@@ -1,6 +1,16 @@
 import io from 'socket.io-client';
 import { question, questionInt } from 'readline-sync';
 import axios from 'axios';
+import chalk from 'chalk';
+
+console.log(chalk.rgb(16, 234, 114)(`
+▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+██ ▄▄▄ █▄ ▄█ ▄▄▀█ ▄▄▀█▄ ▄█ ██ █ ▄▄
+██▄▄▄▀▀██ ██ ▀▀▄█ ▀▀ ██ ██ ██ █▄▄▀
+██ ▀▀▀ ██▄██▄█▄▄█▄██▄██▄███▄▄▄█▄▄▄
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+
+`));
 
 // Helper function to prompt user for URL and port
 function promptForUrlAndPort(promptMessage) {
@@ -12,7 +22,7 @@ function promptForUrlAndPort(promptMessage) {
 // Main function to run the client
 async function main() {
     // Prompt for server URL and port
-    const { url: serverUrl, port: serverPort } = promptForUrlAndPort('Socket server');
+    const { url: serverUrl, port: serverPort } = promptForUrlAndPort('Sever');
     const socket = io(`http://${serverUrl}${serverPort ? `:${serverPort}` : ''}`, {
         reconnectionAttempts: 1,
         timeout: 60000, // 60 seconds timeout
@@ -20,19 +30,20 @@ async function main() {
 
     // Wait for connection success
     let isConnected = false;
-    let reconnections = 0;
     socket.on('connect', () => {
-        console.log('Connected to the server.');
+        console.log(chalk.green('Connected to the server.'));
         isConnected = true;
-        reconnections++;
-        if (reconnections > 1) {
-            process.exit(1);
-        }
+    });
+
+    socket.on('disconnect', () => {
+        console.log(chalk.red('Disconnected from the server.'));
+        isConnected = false;
+        process.exit(1);
     });
 
     setTimeout(() => {
         if (!isConnected) {
-            console.log('Connection timed out.');
+            console.error(chalk.red('Failed to connect to the server.'));
             process.exit(1);
         }
     }, 60000);
@@ -45,15 +56,17 @@ async function main() {
     // Prompt for auth token and verify
     let isAuthenticated = false;
     while (!isAuthenticated) {
-        const authToken = question('Enter auth token: ');
+        const authToken = question('Stratus Auth Token: ');
         socket.emit('token_verify', { token: authToken }, ({ data, error }) => {
             if (error) {
-                console.log(error);
-                return;
+                console.error(chalk.red(error));
+                process.exit(1);
             }
 
             isAuthenticated = true;
-            console.log(data);
+            // console.log(data);
+            console.log(chalk.green('Authentcation success.'));
+            console.log(chalk.blue(`Receiving requests from "${data.id}.${serverUrl}${serverPort ? `:${serverPort}` : ''}".`));
         });
 
         // Wait until authenticated or re-prompt
@@ -63,28 +76,29 @@ async function main() {
     }
 
     // Prompt for service selection
-    const serviceSelection = questionInt('Select service (1-Port Forwarding, 2-Broadcast Directory): ');
+    //const serviceSelection = questionInt('Select service (1-Port Forwarding, 2-Broadcast Directory): ');
 
-    if (serviceSelection === 1) {
-        await startPortForwarding(socket);
-    } else if (serviceSelection === 2) {
-        await startBroadcastDirectory(socket); // Placeholder for future implementation
-    } else {
-        console.log('Invalid selection.');
-        process.exit(1);
-    }
+    //if (serviceSelection === 1) {
+    //    await startPortForwarding(socket);
+    //} else if (serviceSelection === 2) {
+    //    await startBroadcastDirectory(socket); // Placeholder for future implementation
+    //} else {
+    //    console.log(chalk.red('Invalid service selection.'));
+    //    process.exit(1);
+    //}
+
+    await startPortForwarding(socket);
 }
 
 // Function to start port forwarding service
 async function startPortForwarding(socket) {
-    const { url: forwardUrl, port: forwardPort } = promptForUrlAndPort('Forward to');
+    const { url: forwardUrl, port: forwardPort } = promptForUrlAndPort('Local');
 
     socket.on('forward_request', async (data, callback) => {
+        const final_url =
+            `${data.protocol}://${forwardUrl}${forwardPort ? `:${forwardPort}` : ''}`
+            + `${data.path ?? "/"}${data.query ? data.query_string : ""}`;
         try {
-            const final_url =
-                `${data.protocol}://${forwardUrl}${forwardPort ? `:${forwardPort}` : ''}`
-                + `${data.path ?? "/"}${data.query ? data.query_string : ""}`;
-            console.log(final_url);
             const response = await axios({
                 method: data.method,
                 url: final_url,
@@ -92,18 +106,18 @@ async function startPortForwarding(socket) {
                 data: data.body,
             });
             callback(response.data);
-            console.log(`Request forwarded to ${final_url}`);
+            console.log(chalk.green(`> ${final_url} :: ${response.status}`));
         } catch (error) {
-            console.error(error);
+            console.error(chalk.red(`! ${final_url} :: ${error.cause?.code ?? "Unknown error"}`));
         }
     });
 
-    console.log(`Port forwarding service started, forwarding requests to http://${forwardUrl}:${forwardPort}`);
+    console.log(chalk.blue(`Forwarding requests to "${forwardUrl}${forwardPort ? `:${forwardPort}` : ''}".`));
 }
 
 // Placeholder function for future implementation
 async function startBroadcastDirectory(socket) {
-    console.log('Broadcast Directory service is not yet implemented.');
+    console.log(chalk.cyan('Broadcast Directory service is not yet implemented.'));
 }
 
 main();
