@@ -1,5 +1,5 @@
 import io from 'socket.io-client';
-import { question, questionInt } from 'readline-sync';
+import { question } from 'readline-sync';
 import axios from 'axios';
 import chalk from 'chalk';
 
@@ -15,7 +15,7 @@ console.log(chalk.rgb(16, 234, 114)(`
 // Helper function to prompt user for URL and port
 function promptForUrlAndPort(promptMessage) {
     const url = question(`${promptMessage} URL: `);
-    const port = questionInt(`${promptMessage} Port: `);
+    const port = question(`${promptMessage} Port: `);
     return { url, port };
 }
 
@@ -94,21 +94,30 @@ async function main() {
 async function startPortForwarding(socket) {
     const { url: forwardUrl, port: forwardPort } = promptForUrlAndPort('Local');
 
-    socket.on('forward_request', async (data, callback) => {
+    socket.on('forward_request', async ({ data }, callback) => {
+        let query_string = "?";
+        for (const key in data.query) {
+            query_string += `${key}=${data.query[key]}&`;
+        }
         const final_url =
             `${data.protocol}://${forwardUrl}${forwardPort ? `:${forwardPort}` : ''}`
-            + `${data.path ?? "/"}${data.query ? data.query_string : ""}`;
+            + `${data.path ?? "/"}${query_string}`;
         try {
             const response = await axios({
                 method: data.method,
                 url: final_url,
                 headers: data.headers,
                 data: data.body,
+                validateStatus: (status) => status >= 200 && status < 300 || status === 304,
             });
-            callback(response.data);
+            callback({
+                data: response.data,
+                headers: response.headers,
+                status: response.status,
+            });
             console.log(chalk.green(`> ${final_url} :: ${response.status}`));
         } catch (error) {
-            console.error(chalk.red(`! ${final_url} :: ${error.cause?.code ?? "Unknown error"}`));
+            console.error(chalk.red(`! ${final_url} :: ${error.cause?.code ?? error ?? "Unknown error"}`));
         }
     });
 

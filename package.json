@@ -1,7 +1,7 @@
 {
   "name": "stratus-cli",
   "description": "CLI for Stratus, a port forwarding service.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "bin": "src/main.js",
   "scripts": {
