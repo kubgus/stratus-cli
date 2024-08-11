@@ -4,23 +4,14 @@ CLI for Stratus.
 
 ## Install
 
+1. Download the latest release
+
+2. Modify execution rules
 ```sh
-npm install -g stratus-cli
+chmod +x <stratus-cli>
 ```
-
-> ***Note:*** Might need to run as root.
-
-## Usage
-
-1. Create an account with Stratus
-
-2. Generate a subdomain token
 
 3. Run
-
-```sh
-npx stratus-cli
-```
 
 ## Build
 
