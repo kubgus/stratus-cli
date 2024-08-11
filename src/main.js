@@ -22,7 +22,7 @@ function promptForUrlAndPort(promptMessage) {
 // Main function to run the client
 async function main() {
     // Prompt for server URL and port
-    const { url: serverUrl, port: serverPort } = promptForUrlAndPort('Sever');
+    const { url: serverUrl, port: serverPort } = promptForUrlAndPort('Server');
     const socket = io(`http://${serverUrl}${serverPort ? `:${serverPort}` : ''}`, {
         reconnectionAttempts: 1,
         timeout: 60000, // 60 seconds timeout
