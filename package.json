@@ -4,6 +4,7 @@
   "version": "1.0.1",
   "type": "module",
   "bin": "src/main.js",
+  "main": "src/main.js",
   "scripts": {
     "start": "node src/main.js",
     "dev": "nodemon src/main.js"
